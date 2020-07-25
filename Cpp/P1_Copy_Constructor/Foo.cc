@@ -1,22 +1,39 @@
 #include "Foo.h"
+#include <iostream>
 
 
-Foo::Foo(int intVal, int * intPtr, std::string name) 
-    : m_intVal(intVal), m_intPtr(intPtr), m_name(name)
+Foo::Foo(int val)
 {
-
+#ifdef STACK_MEMBER
+    m_member = val;
+#else
+    m_member = new int;
+    *m_member = val;
+#endif
 }
 
+#ifndef STACK_MEMBER
 Foo::Foo(const Foo& other)
 {
-    m_intVal = other.m_intVal;
-    m_intPtr = other.m_intPtr;
-    m_name = other.m_name;
+    m_member = new int;
+    *m_member = *other.m_member;
 }
+
+Foo::~Foo()
+{
+    delete m_member;
+    m_member=nullptr;
+}
+#endif
 
 void Foo::printMe()
 {
-    std::cout << "m_intVal:\t" << m_intVal
-    << "m_intPtr:\t" << m_intPtr << "\t *m_intPtr:\t" << m_intPtr[5]
-    << "\tm_name:\t" << m_name << std::endl; 
+#ifdef STACK_MEMBER
+    std::cout << "m_member:" << m_member 
+        << "&m_member:" << &m_member << std::endl;
+#else
+    std::cout << "m_member:" << *m_member 
+        << "&m_member:" << m_member << std::endl;
+#endif
 }
+

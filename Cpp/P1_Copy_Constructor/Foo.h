@@ -8,18 +8,20 @@
  * @copyright Copyright (c) 2020
  * 
  */
-#include <iostream>
-#include <string>
-
+// #define STACK_MEMBER
 class Foo
 {
 public:
-    Foo(int intVal, int* intPtr, std::string name);
+    Foo(int val);
+#ifndef STACK_MEMBER
     Foo(const Foo& other);
-
+    ~Foo();
+#endif
     void printMe();
 private:
-    int m_intVal;
-    int* m_intPtr;
-    std::string m_name;
+#ifdef STACK_MEMBER
+    int m_member;
+#else
+    int* m_member;
+#endif
 };
