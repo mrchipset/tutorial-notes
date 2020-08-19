@@ -32,22 +32,26 @@ def train_model(model, train_xs, train_ys):
         # # model.add(nn.Dense(1))
 
         model.initialize(init.Normal(sigma=0.1))
+        # model.initialize(init.Xavier())
 
         loss_f = loss.L2Loss()
 
         trainer = gluon.Trainer(model.collect_params(), 'sgd',
-                                {'learning_rate': 0.1})
+                                {'learning_rate': 0.05})
 
         # Train the model
-        num_epochs = 100
+        num_epochs = 25
         for epoch in range(1, num_epochs + 1):
             l = None
             for X, y in train_data_iter:
                 with autograd.record():
-                    l = loss_f(model(X), y)
+                    # l = loss_f(model(X), y)
+                    l = nd.power(model(X) - y, 2)
                 l.backward()
                 trainer.step(batch_size)
-            l = loss_f(model(train_xs), train_ys)
+
+            # l = loss_f(model(train_xs), train_ys)
+            l = nd.power(model(train_xs) - train_ys, 2) 
             mse = np.sum(
                 np.power(
                     train_ys.asnumpy().reshape(-1, 1) -
@@ -140,7 +144,7 @@ a = 2.375
 b = 0.1126
 c = 1.2
 d = 0.4
-noise = 0.1
+noise = 1
 train_xs = np.arange(-10, 10, 0.001).reshape(-1, 1)
 train_ys = get_data_f2(train_xs, a, b, c, d, noise)
 
@@ -160,4 +164,39 @@ plt.plot(train_xs, ys_pre.asnumpy())
 plt.legend(['train', 'predict'])
 plt.show()
 
+# %% for y =  A*exp(-(x-t/c)^2) with drop our
+# Analyze the effect of activation function
+# Generate the data
+
+# %% for y =  A*exp(-(x-t/c)^2)
+def get_data_f3(x, a, b, c, d, noise):
+    """
+    return function y = a*exp(-(x-b/c)^2) + d + noise
+    """
+    y = x + a*np.exp(-(x-b/c)**2) + d + noise * np.random.rand(x.shape[0], x.shape[1])
+    return y
+
+a = 2.375
+b = 0.1126
+c = 1.2
+d = 0.4
+noise = 0.1
+train_xs = np.arange(-10, 10, 0.01).reshape(-1, 1)
+train_ys = get_data_f3(train_xs, a, b, c, d, noise)
+# train_ys = get_data_f1(train_xs, a, b, noise)
+
+model = nn.Sequential()
+model.add(nn.Dense(64, activation='sigmoid'))
+model.add(nn.Dense(64, activation='sigmoid'))
+# model.add(nn.Dense(64, activation='sigmoid'))
+# model.add(nn.Dense(64, activation='relu'))
+model.add(nn.Dense(1))
+train_model(model, train_xs, train_ys)
+
+ys_pre = model(nd.array(train_xs, device_ctx))
+plt.figure()
+plt.plot(train_xs, train_ys)
+plt.plot(train_xs, ys_pre.asnumpy())
+plt.legend(['train', 'predict'])
+plt.show()
 # %%
