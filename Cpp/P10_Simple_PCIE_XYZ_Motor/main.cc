@@ -1,6 +1,7 @@
 #include "Stepper.h"
 #include "smc4.h"
 #include <iostream>
+#include <Windows.h>
 
 void initMotor(MOTOR_PAR& motorConfig)
 {
@@ -43,14 +44,25 @@ void main()
     SPEED(yAxis,motorConfig[yAxis].jogSpeed);
     SPEED(zAxis,motorConfig[zAxis].jogSpeed);
     SPEED(tAxis,motorConfig[tAxis].jogSpeed);
+    
+	float move=0.1f;
+	if (motorConfig[yAxis].stepRes>move)
+    {
+		move=motorConfig[yAxis].stepRes;
+    }
 
     double pos = GETPOSITION(yAxis);
     std::cout << "Current Position: yAxis\t" << pos << std::endl;
-    double delta = pos * 0.05;
     // relative move
-    MOVE(yAxis, pos - delta);
+    MOVE(yAxis, move);
     // get motor status
+    while(STATUS(yAxis) == 1)
+    {
+        Sleep(100);
+    }
     bool isMoving = STATUS(yAxis) == 1 ? true : false;
     std::cout << "Moving Status\t" << isMoving << std::endl;
+    pos = GETPOSITION(yAxis);
+    std::cout << "Current Position: yAxis\t" << pos << std::endl;
     halt();
 }
